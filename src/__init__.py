@@ -1,1 +1,1 @@
-import periodograms
+__all__ = ['periodograms']

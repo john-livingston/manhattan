@@ -11,9 +11,9 @@ sampled and corrupted by noise - within reason.
 -------------------------------------------------------'''
 
 def basis_pursuit(t,y,fmin=None,fmax=None,nfreqs=5000,polyorder=2,
-	method="basis",tau=0.1,noise=True):
+    method="basis",tau=0.1,noise=True):
 
-	# preprocess
+    # preprocess
 
     ndata = np.size(y)
 
@@ -38,9 +38,9 @@ def basis_pursuit(t,y,fmin=None,fmax=None,nfreqs=5000,polyorder=2,
     df = np.abs(np.nanmedian(freqs-np.roll(freqs,-1)))
 
     if noise is True:
-    	ndirac = ndata
+        ndirac = ndata
     else:
-    	ndirac = 0
+        ndirac = 0
 
     X = np.zeros((nt,nfreqs*2+polyorder+1+ndirac))
 
@@ -51,7 +51,7 @@ def basis_pursuit(t,y,fmin=None,fmax=None,nfreqs=5000,polyorder=2,
 
     # now do polynomial bits
     for j in range(polyorder+1):
-    	pp = t**(polyorder-j)
+        pp = t**(polyorder-j)
         X[:,nfreqs*2 +j] = pp/np.abs(pp.max())
 
     # now do the dirac delta functions
@@ -60,15 +60,15 @@ def basis_pursuit(t,y,fmin=None,fmax=None,nfreqs=5000,polyorder=2,
         X[j,-ndirac+j] = 1.
 
     if method == "basis":
-    	x,resid,grad,info = spg_bp(X, y)
+        x,resid,grad,info = spg_bp(X, y)
 
     elif method == "lasso":
-    	tau = 0.1
-    	x, resid, grad, info = spg_lasso(X, y, tau)
+        tau = 0.1
+        x, resid, grad, info = spg_lasso(X, y, tau)
 
     else:
-    	print "Did not select a method"
-    	return 0 
+        print("Did not select a method")
+        return 0 
 
     sines = x[:nfreqs]
     cosines = x[nfreqs:2*nfreqs]
@@ -97,53 +97,53 @@ def basis_pursuit(t,y,fmin=None,fmax=None,nfreqs=5000,polyorder=2,
 
 
 def csper(t,y,fmin=None,fmax=None,nfreqs=5000,nsines=4,polyorder=2,sig=5):
-	trange = np.nanmax(t)-np.nanmin(t)
-	dt = np.abs(np.nanmedian(t-np.roll(t,-1)))
-	nt = np.size(t)
+    trange = np.nanmax(t)-np.nanmin(t)
+    dt = np.abs(np.nanmedian(t-np.roll(t,-1)))
+    nt = np.size(t)
 
-	# make defaults
+    # make defaults
 
-	if fmin is None:
-		fmin = 1./trange
-	if fmax is None:
-		fmax = 2./dt
+    if fmin is None:
+        fmin = 1./trange
+    if fmax is None:
+        fmax = 2./dt
 
-	freqs = np.linspace(fmin,fmax,nfreqs)
-	df = np.abs(np.nanmedian(freqs-np.roll(freqs,-1)))
+    freqs = np.linspace(fmin,fmax,nfreqs)
+    df = np.abs(np.nanmedian(freqs-np.roll(freqs,-1)))
 
-	X = np.zeros((nt,nfreqs*2+polyorder))
+    X = np.zeros((nt,nfreqs*2+polyorder))
 
-	# set up matrix of sines and cosines
-	for j in range(nfreqs):
-		X[:,j] = np.sin(t*freqs[j])
-		X[:,nfreqs+j] = np.cos(t*freqs[j])
+    # set up matrix of sines and cosines
+    for j in range(nfreqs):
+        X[:,j] = np.sin(t*freqs[j])
+        X[:,nfreqs+j] = np.cos(t*freqs[j])
 
-	# now do polynomial bits
-	for j in range(polyorder):
-		X[:,-j] = t**(polyorder-j)
+    # now do polynomial bits
+    for j in range(polyorder):
+        X[:,-j] = t**(polyorder-j)
 
-	n_components, n_features = nfreqs, nt
-	n_nonzero_coefs = nsines+polyorder
+    n_components, n_features = nfreqs, nt
+    n_nonzero_coefs = nsines+polyorder
 
-	omp = OrthogonalMatchingPursuit(n_nonzero_coefs=n_nonzero_coefs)
-	omp.fit(X, y-np.nanmedian(y))
+    omp = OrthogonalMatchingPursuit(n_nonzero_coefs=n_nonzero_coefs)
+    omp.fit(X, y-np.nanmedian(y))
 
-	coef = omp.coef_
-	idx_r, = coef[:-polyorder].nonzero()
-	sines = freqs[idx_r[idx_r<nfreqs]]
-	cosines = freqs[idx_r[idx_r>nfreqs]-nfreqs]
-	print 'Sine components:', sines
-	print 'Cosine components:',cosines
+    coef = omp.coef_
+    idx_r, = coef[:-polyorder].nonzero()
+    sines = freqs[idx_r[idx_r<nfreqs]]
+    cosines = freqs[idx_r[idx_r>nfreqs]-nfreqs]
+    print('Sine components:', sines)
+    print('Cosine components:',cosines)
 
-	amp_raw = np.sqrt(coef[:nfreqs]**2. + coef[nfreqs:-polyorder]**2)
-	amp = gaussian_filter1d(amp_raw,sig)
+    amp_raw = np.sqrt(coef[:nfreqs]**2. + coef[nfreqs:-polyorder]**2)
+    amp = gaussian_filter1d(amp_raw,sig)
 
-	recon = np.dot(X,coef)
+    recon = np.dot(X,coef)
 
-	output = {'Frequencies':freqs,
-			  'Raw_Amplitudes':coef[:-polyorder],
-			  'Polynomial':coef[-polyorder:],
-			  'Reconstruction':recon,
-			  'Amplitude':amp}
+    output = {'Frequencies':freqs,
+              'Raw_Amplitudes':coef[:-polyorder],
+              'Polynomial':coef[-polyorder:],
+              'Reconstruction':recon,
+              'Amplitude':amp}
 
-	return output
+    return output

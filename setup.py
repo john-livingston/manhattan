@@ -13,7 +13,7 @@ setup(name='manhattan',
       url='',
       package_dir={'manhattan':'src'},
       packages=['manhattan'],
-      install_requires=["numpy", "astropy", "scipy","spgl1"],
+      install_requires=["numpy", "astropy", "scipy", "spgl1"],
       license='GPLv3',
       classifiers=[
           "Topic :: Scientific/Engineering",
